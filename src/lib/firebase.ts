@@ -14,6 +14,18 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const auth = getAuth(app);
+// Initialize Firebase only if config is present (prevents build errors)
+const isConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
+
+let app;
+let auth: any;
+
+if (isConfigured) {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+} else {
+    // During build time or if env vars are missing, provide a dummy/mock setup or just don't crash
+    console.warn("Firebase config missing. Auth will not work.");
+}
+
+export { auth };

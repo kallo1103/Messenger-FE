@@ -12,6 +12,9 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useChatStore } from '@/store/useChatStore';
 
+// Helper to check if auth is available
+const isAuthAvailable = () => !!auth;
+
 export default function RegisterPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +30,8 @@ export default function RegisterPage() {
     setError('');
     
     try {
+      if (!isAuthAvailable()) throw new Error('Authentication service not configured');
+
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await updateProfile(userCredential.user, { displayName: data.name });
       const user = userCredential.user;

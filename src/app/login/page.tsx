@@ -12,6 +12,9 @@ import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from 
 import { auth } from '@/lib/firebase';
 import { useChatStore } from '@/store/useChatStore';
 
+// Helper to check if auth is available
+const isAuthAvailable = () => !!auth;
+
 export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +30,8 @@ export default function LoginPage() {
     setError('');
     
     try {
+      if (!isAuthAvailable()) throw new Error('Authentication service not configured');
+      
       const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       
@@ -50,6 +55,8 @@ export default function LoginPage() {
     setError('');
     
     try {
+       if (!isAuthAvailable()) throw new Error('Authentication service not configured');
+
        const provider = new GoogleAuthProvider();
        const result = await signInWithPopup(auth, provider);
        const user = result.user;
