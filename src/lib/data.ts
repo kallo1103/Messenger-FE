@@ -51,3 +51,41 @@ export const MOCK_CONVERSATIONS: Conversation[] = OTHER_USERS.map((user) => ({
     messages: generateMessages(user.id),
     unreadCount: Math.random() > 0.7 ? Math.floor(Math.random() * 5) + 1 : 0
 }));
+
+import { Call } from '@/types/chat';
+
+export const MOCK_CALLS: Call[] = [
+    {
+        id: 'call-1',
+        participant: OTHER_USERS[0],
+        type: 'missed',
+        date: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
+    },
+    {
+        id: 'call-2',
+        participant: OTHER_USERS[1],
+        type: 'incoming',
+        date: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+        duration: '12m 4s'
+    },
+    {
+        id: 'call-3',
+        participant: OTHER_USERS[2],
+        type: 'outgoing',
+        date: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+        duration: '5m 0s'
+    },
+    {
+        id: 'call-4',
+        participant: OTHER_USERS[3],
+        type: 'missed',
+        date: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
+    },
+    {
+        id: 'call-5',
+        participant: OTHER_USERS[4],
+        type: 'incoming',
+        date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+        duration: '22m 14s'
+    },
+];

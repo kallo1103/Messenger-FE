@@ -18,3 +18,13 @@ export interface Conversation {
     messages: Message[];
     unreadCount: number;
 }
+
+export type CallType = 'incoming' | 'outgoing' | 'missed';
+
+export interface Call {
+    id: string;
+    participant: User;
+    type: CallType;
+    date: Date;
+    duration?: string; // e.g. "5m 23s"
+}

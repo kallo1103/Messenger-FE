@@ -89,8 +89,12 @@ export default function ChatWindow() {
           {messages.map((msg, index) => {
             const isMe = msg.senderId === 'me' || msg.senderId === currentUser?.id;
             const prevMsg = index > 0 ? messages[index - 1] : null;
-            const showDateSeparator = !prevMsg || 
-              Math.abs(msg.createdAt.getTime() - prevMsg.createdAt.getTime()) > 1000 * 60 * 60 * 24;
+            
+            const msgDate = new Date(msg.createdAt);
+            const prevMsgDate = prevMsg ? new Date(prevMsg.createdAt) : null;
+            
+            const showDateSeparator = !prevMsgDate || 
+              Math.abs(msgDate.getTime() - prevMsgDate.getTime()) > 1000 * 60 * 60 * 24;
             
             return (
               <div key={msg.id} ref={index === messages.length - 1 ? scrollRef : null}>

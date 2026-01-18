@@ -3,10 +3,32 @@
 import { useChatStore } from '@/store/useChatStore';
 import ChatWindow from '@/components/chat/ChatWindow';
 import { cn } from '@/lib/utils';
-import { MessageCircle, Users, ShoppingBag, Settings, Phone, Search } from 'lucide-react';
+import { MessageCircle, Users, ShoppingBag, Settings, Phone, Search, PhoneIncoming, PhoneOutgoing, PhoneMissed, Video } from 'lucide-react';
+import { useState } from 'react';
+import { MOCK_CALLS, OTHER_USERS } from '@/lib/data';
+import { format } from 'date-fns';
+import { SettingsModal } from '@/components/modals/SettingsModal';
+import { ProfileModal } from '@/components/modals/ProfileModal';
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  const { activeConversationId, setActiveConversation } = useChatStore();
+  const router = useRouter();
+  const { activeConversationId, setActiveConversation, currentUser } = useChatStore();
+  
+  const conversations = useChatStore(state => state.conversations);
+  const [activeTab, setActiveTab] = useState<'chats' | 'people' | 'calls'>('chats');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, router]);
+
+  if (!currentUser) return null; // Loading state could be better here
 
   return (
     <main className="flex h-screen overflow-hidden bg-[#F0F2F5] dark:bg-[#18191A] text-[#050505] dark:text-[#E4E6EB]">
@@ -18,32 +40,67 @@ export default function Home() {
          </div>
          
          <div className="flex flex-col gap-1 w-full px-2">
-            <button className="group h-12 w-full flex items-center justify-center relative rounded-lg hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] transition-colors">
-               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1877F2] rounded-r-full"></div>
-               <div className="p-2 bg-[#1877F2] text-white rounded-lg">
+            <button 
+               onClick={() => setActiveTab('chats')}
+               className={cn(
+                  "group h-12 w-full flex items-center justify-center relative rounded-lg transition-colors",
+                  activeTab === 'chats' ? "bg-[#E7F3FF] dark:bg-[#3A3B3C]" : "hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C]"
+               )}
+            >
+               {activeTab === 'chats' && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1877F2] rounded-r-full"></div>}
+               <div className={cn("p-2 rounded-lg", activeTab === 'chats' ? "text-[#1877F2]" : "text-[#65676B] dark:text-[#B0B3B8]")}>
                  <MessageCircle className="w-6 h-6" />
                </div>
             </button>
-            <button className="group h-12 w-full flex items-center justify-center text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] rounded-lg transition-colors">
-               <Users className="w-6 h-6" />
+            <button 
+               onClick={() => setActiveTab('people')}
+               className={cn(
+                  "group h-12 w-full flex items-center justify-center relative rounded-lg transition-colors",
+                  activeTab === 'people' ? "bg-[#E7F3FF] dark:bg-[#3A3B3C]" : "hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C]"
+               )}
+            >
+               {activeTab === 'people' && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1877F2] rounded-r-full"></div>}
+               <div className={cn("p-2 rounded-lg", activeTab === 'people' ? "text-[#1877F2]" : "text-[#65676B] dark:text-[#B0B3B8]")}>
+                  <Users className="w-6 h-6" />
+               </div>
             </button>
             <button className="group h-12 w-full flex items-center justify-center text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] rounded-lg transition-colors">
                <ShoppingBag className="w-6 h-6" />
             </button>
-            <button className="group h-12 w-full flex items-center justify-center text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] rounded-lg transition-colors">
-               <Phone className="w-6 h-6" />
+            <button 
+               onClick={() => setActiveTab('calls')}
+               className={cn(
+                  "group h-12 w-full flex items-center justify-center relative rounded-lg transition-colors",
+                  activeTab === 'calls' ? "bg-[#E7F3FF] dark:bg-[#3A3B3C]" : "hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C]"
+               )}
+            >
+               {activeTab === 'calls' && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#1877F2] rounded-r-full"></div>}
+               <div className={cn("p-2 rounded-lg", activeTab === 'calls' ? "text-[#1877F2]" : "text-[#65676B] dark:text-[#B0B3B8]")}>
+                  <Phone className="w-6 h-6" />  
+               </div>
             </button>
          </div>
          
          <div className="mt-auto flex flex-col gap-3 items-center w-full px-2 pb-2">
-             <button className="text-[#65676B] dark:text-[#B0B3B8] hover:text-[#050505] dark:hover:text-[#E4E6EB] p-2 rounded-lg hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] transition-colors">
+             <button 
+                onClick={() => setIsSettingsOpen(true)}
+                className="text-[#65676B] dark:text-[#B0B3B8] hover:text-[#050505] dark:hover:text-[#E4E6EB] p-2 rounded-lg hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] transition-colors"
+                title="Settings"
+             >
                 <Settings className="w-6 h-6" />
              </button>
-             <div className="w-10 h-10 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
-                <img src="https://i.pravatar.cc/150?u=me" alt="Me" className="w-full h-full object-cover" />
+             <div 
+                onClick={() => setIsProfileOpen(true)} 
+                className="w-10 h-10 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                title="Profile"
+             >
+                <img src={currentUser?.avatar || "https://i.pravatar.cc/150?u=me"} alt="Me" className="w-full h-full object-cover" />
              </div>
          </div>
       </nav>
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Left Sidebar - Chat List */}
       <aside className={cn(
@@ -51,18 +108,22 @@ export default function Home() {
         activeConversationId ? "hidden md:flex" : "flex"
       )}>
         <div className="p-3 h-[60px] flex items-center justify-between border-b border-[#E4E6EB] dark:border-[#3E4042] flex-shrink-0">
-           <h1 className="text-2xl font-bold text-[#050505] dark:text-[#E4E6EB]">Chats</h1>
+           <h1 className="text-2xl font-bold text-[#050505] dark:text-[#E4E6EB]">
+             {activeTab === 'chats' ? 'Chats' : activeTab === 'people' ? 'People' : 'Calls'}
+           </h1>
            <div className="flex items-center gap-2">
              <button className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center hover:bg-[#D8DADF] dark:hover:bg-[#4E4F50] transition-colors">
                <Search className="w-5 h-5 text-[#050505] dark:text-[#E4E6EB]" />
              </button>
-             <button className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center hover:bg-[#D8DADF] dark:hover:bg-[#4E4F50] transition-colors">
-               <svg className="w-5 h-5 text-[#050505] dark:text-[#E4E6EB]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-             </button>
+             {activeTab === 'chats' && (
+                <button className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center hover:bg-[#D8DADF] dark:hover:bg-[#4E4F50] transition-colors">
+                  <svg className="w-5 h-5 text-[#050505] dark:text-[#E4E6EB]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
+             )}
            </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-           {useChatStore(state => state.conversations).map((conversation) => {
+           {activeTab === 'chats' && conversations.map((conversation) => {
              const isActive = activeConversationId === conversation.id;
              const otherParticipant = conversation.participants.find(p => p.id !== 'me') || conversation.participants[0];
              const lastMessage = conversation.messages[conversation.messages.length - 1];
@@ -128,6 +189,63 @@ export default function Home() {
                </div>
              );
            })}
+
+           {activeTab === 'people' && (
+             <div className="p-2">
+               <div className="mb-2 px-2 text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] uppercase">Active Now</div>
+               {OTHER_USERS.map((user, idx) => (
+                 <div key={user.id} className="flex items-center gap-3 px-2 py-2 cursor-pointer hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C] rounded-lg transition-colors">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      </div>
+                      {(idx % 3 !== 0) && ( // Mock active status logic
+                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-[#242526]"></span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                       <h3 className="text-[15px] font-semibold text-[#050505] dark:text-[#E4E6EB]">{user.name}</h3>
+                       <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">{(idx % 3 !== 0) ? 'Active now' : 'Active 10m ago'}</p>
+                    </div>
+                 </div>
+               ))}
+             </div>
+           )}
+
+           {activeTab === 'calls' && (
+              <div className="p-2">
+                 {MOCK_CALLS.map((call) => (
+                    <div key={call.id} className="flex items-center gap-3 px-2 py-2 cursor-pointer hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C] rounded-lg transition-colors">
+                       <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                             <img src={call.participant.avatar} alt={call.participant.name} className="w-full h-full object-cover" />
+                          </div>
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <h3 className="text-[15px] font-semibold text-[#050505] dark:text-[#E4E6EB]">{call.participant.name}</h3>
+                          <div className="flex items-center gap-1 text-xs text-[#65676B] dark:text-[#B0B3B8]">
+                             {call.type === 'incoming' && <PhoneIncoming size={12} />}
+                             {call.type === 'outgoing' && <PhoneOutgoing size={12} />}
+                             {call.type === 'missed' && <PhoneMissed size={12} className="text-red-500" />}
+                             <span>
+                                {call.type === 'missed' ? 'Missed' : call.type === 'incoming' ? 'Incoming' : 'Outgoing'}
+                                {' • '}
+                                {format(call.date, 'MMM d, h:mm a')}
+                             </span>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-1">
+                          <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#E4E6EB] dark:hover:bg-[#4E4F50] transition-colors">
+                              <Phone size={20} className="text-[#050505] dark:text-[#E4E6EB]" />
+                          </button>
+                          <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#E4E6EB] dark:hover:bg-[#4E4F50] transition-colors">
+                              <Video size={20} className="text-[#050505] dark:text-[#E4E6EB]" />
+                          </button>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           )}
         </div>
       </aside>
 
